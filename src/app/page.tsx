@@ -68,6 +68,30 @@ const TX_COLOR: Record<string, string> = {
   undelegate: "text-zinc-400",
 };
 
+const IDLE_AGENTS: { id: AgentId; name: string; emoji: string; color: string; tagline: string }[] = [
+  {
+    id: "whale",
+    name: "The Whale",
+    emoji: "🐋",
+    color: "from-blue-600 to-cyan-400",
+    tagline: "Aggressive on rares. Skips commons. Hates losing.",
+  },
+  {
+    id: "hunter",
+    name: "The Value Hunter",
+    emoji: "🎯",
+    color: "from-emerald-600 to-lime-400",
+    tagline: "Strict valuation. Walks away from inflated lots.",
+  },
+  {
+    id: "vibes",
+    name: "The Vibes Trader",
+    emoji: "🎭",
+    color: "from-fuchsia-600 to-orange-400",
+    tagline: "Bids on lore and aesthetics. Chaotic.",
+  },
+];
+
 export default function Home() {
   const [agents, setAgents] = useState<AgentMeta[] | null>(null);
   const [round, setRound] = useState(0);
@@ -238,16 +262,17 @@ export default function Home() {
             <ItemDisplay item={item} winnerBanner={winnerBanner} agents={agents} round={round} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {agents?.map((a) => (
-                <AgentCard
-                  key={a.id}
-                  agent={a}
-                  state={agentStates[a.id]}
-                  balance={balances[a.id]}
-                  wins={wins[a.id]}
-                />
-              ))}
-              {!agents && <AgentCardSkeletons />}
+              {agents
+                ? agents.map((a) => (
+                    <AgentCard
+                      key={a.id}
+                      agent={a}
+                      state={agentStates[a.id]}
+                      balance={balances[a.id]}
+                      wins={wins[a.id]}
+                    />
+                  ))
+                : IDLE_AGENTS.map((a) => <AgentPreviewCard key={a.id} agent={a} />)}
             </div>
 
             {auditTx && <AuditCallout tx={auditTx} />}
@@ -511,13 +536,41 @@ function ItemDisplay({
   );
 }
 
-function AgentCardSkeletons() {
+function AgentPreviewCard({
+  agent,
+}: {
+  agent: { id: AgentId; name: string; emoji: string; color: string; tagline: string };
+}) {
   return (
-    <>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 h-44 shimmer" />
-      ))}
-    </>
+    <div className="relative rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur p-5 transition-all duration-300 hover:border-zinc-700">
+      <div className="flex items-center gap-3">
+        <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center text-3xl`}>
+          <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${agent.color} opacity-20`} />
+          <span className="relative">{agent.emoji}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`font-black text-sm bg-gradient-to-r ${agent.color} bg-clip-text text-transparent`}>
+            {agent.name}
+          </div>
+          <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+            5,000 <span className="text-zinc-700">USDC</span>
+            <span className="text-zinc-700"> · </span>
+            <span className="text-zinc-600">standby</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 min-h-[60px] flex items-start">
+        <div className="text-[13px] text-zinc-400 leading-relaxed">{agent.tagline}</div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-zinc-800/80 flex items-center gap-2">
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400/70 animate-pulse" />
+        <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">
+          ready
+        </span>
+      </div>
+    </div>
   );
 }
 
