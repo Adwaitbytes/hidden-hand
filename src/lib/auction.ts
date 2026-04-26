@@ -42,9 +42,10 @@ export async function* runAuctionSession(totalRounds = 5): AsyncGenerator<Auctio
     const auctionId = item.id;
 
     yield { type: "round_start", round, item, auctionId };
-    yield { type: "er_tx", round, tx: txDelegateAuction(auctionId) };
+    const delegateTx = await txDelegateAuction(auctionId);
+    yield { type: "er_tx", round, tx: delegateTx };
 
-    await delay(250);
+    await delay(150);
 
     for (const a of AGENTS) {
       yield { type: "agent_thinking", round, agentId: a.id };
@@ -66,13 +67,20 @@ export async function* runAuctionSession(totalRounds = 5): AsyncGenerator<Auctio
         thought: r.thought,
         encryptedBlob: r.encryptedBlob,
       };
-      yield { type: "er_tx", round, tx: txSubmitBid(auctionId, r.agentId, r.encryptedBlob) };
-      await delay(120);
     }
 
-    await delay(600);
+    const bidTxs = await Promise.all(
+      bidResults.map((r) => txSubmitBid(auctionId, r.agentId, r.encryptedBlob))
+    );
+    for (const tx of bidTxs) {
+      yield { type: "er_tx", round, tx };
+      await delay(80);
+    }
 
-    yield { type: "er_tx", round, tx: txReveal(auctionId) };
+    await delay(400);
+
+    const revealTx = await txReveal(auctionId);
+    yield { type: "er_tx", round, tx: revealTx };
     yield {
       type: "reveal",
       round,
@@ -93,7 +101,8 @@ export async function* runAuctionSession(totalRounds = 5): AsyncGenerator<Auctio
       balances[winner.agentId] -= winner.bid;
       wins[winner.agentId] += 1;
       haul[winner.agentId].push(item);
-      yield { type: "er_tx", round, tx: txSettle(auctionId, winner.agentId, winner.bid) };
+      const settleTx = await txSettle(auctionId, winner.agentId, winner.bid);
+      yield { type: "er_tx", round, tx: settleTx };
       yield { type: "winner", round, agentId: winner.agentId, amount: winner.bid, item };
     } else {
       yield { type: "winner", round, agentId: null, amount: 0, item };

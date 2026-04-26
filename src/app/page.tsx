@@ -380,40 +380,58 @@ function ErFeed({ feed }: { feed: ERTx[] }) {
       </div>
       <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
         {feed.length === 0 && <div className="text-zinc-600 text-xs italic">no transactions yet</div>}
-        {feed.map((tx, i) => (
-          <div
-            key={tx.signature + i}
-            className="border border-zinc-800 rounded-lg px-3 py-2 bg-zinc-900/40 text-[11px]"
-          >
-            <div className="flex items-center justify-between">
-              <span
-                className={`font-bold uppercase tracking-wider ${
-                  tx.type === "submit_sealed_bid"
-                    ? "text-fuchsia-400"
-                    : tx.type === "reveal"
-                    ? "text-amber-400"
-                    : tx.type === "settle"
-                    ? "text-emerald-400"
-                    : "text-sky-400"
-                }`}
-              >
-                {tx.type.replace(/_/g, " ")}
-              </span>
-              <span className="text-[9px] text-zinc-600">{tx.endpoint}</span>
+        {feed.map((tx, i) => {
+          const sigShort = tx.signature && tx.signature !== "(failed)" ? tx.signature.slice(0, 32) + "…" : "";
+          const inner = (
+            <>
+              <div className="flex items-center justify-between">
+                <span
+                  className={`font-bold uppercase tracking-wider ${
+                    tx.type === "submit_sealed_bid"
+                      ? "text-fuchsia-400"
+                      : tx.type === "reveal"
+                      ? "text-amber-400"
+                      : tx.type === "settle"
+                      ? "text-emerald-400"
+                      : "text-sky-400"
+                  }`}
+                >
+                  {tx.type.replace(/_/g, " ")}
+                </span>
+                <span className="text-[9px] text-zinc-600">{tx.endpoint}</span>
+              </div>
+              {tx.error ? (
+                <div className="text-[10px] text-red-400 mt-0.5 truncate">tx failed: {tx.error}</div>
+              ) : tx.signature && tx.signature !== "(failed)" ? (
+                <div className="font-mono text-zinc-500 truncate mt-0.5 group-hover:text-emerald-400">
+                  {sigShort} <span className="text-[9px] text-zinc-600">↗</span>
+                </div>
+              ) : (
+                <div className="font-mono text-zinc-600 italic mt-0.5">submitting…</div>
+              )}
+              {tx.payload?.encryptedBlob ? (
+                <div className="font-mono text-zinc-600 truncate mt-0.5">
+                  blob: {String(tx.payload.encryptedBlob).slice(0, 40)}…
+                </div>
+              ) : null}
+              {tx.payload?.amount ? (
+                <div className="text-emerald-400 mt-0.5">
+                  +{String(tx.payload.amount)} USDC → {String(tx.payload.winner)}
+                </div>
+              ) : null}
+            </>
+          );
+          const className = "block group border border-zinc-800 rounded-lg px-3 py-2 bg-zinc-900/40 text-[11px] hover:border-zinc-600 transition";
+          return tx.explorerUrl ? (
+            <a key={tx.signature + i} href={tx.explorerUrl} target="_blank" rel="noopener noreferrer" className={className}>
+              {inner}
+            </a>
+          ) : (
+            <div key={tx.signature + i} className={className}>
+              {inner}
             </div>
-            <div className="font-mono text-zinc-500 truncate mt-0.5">{tx.signature.slice(0, 32)}…</div>
-            {tx.payload?.encryptedBlob ? (
-              <div className="font-mono text-zinc-600 truncate mt-0.5">
-                blob: {String(tx.payload.encryptedBlob).slice(0, 40)}…
-              </div>
-            ) : null}
-            {tx.payload?.amount ? (
-              <div className="text-emerald-400 mt-0.5">
-                +{String(tx.payload.amount)} USDC → {String(tx.payload.winner)}
-              </div>
-            ) : null}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
