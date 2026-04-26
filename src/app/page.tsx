@@ -306,7 +306,12 @@ function Header({
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 text-[11px] font-mono">
             <Badge label="theme" value="agentic" tone="fuchsia" />
             <Badge label="event" value="solana blitz v4" tone="amber" />
-            <Badge label="tx layer" value="@solana/web3.js" tone="emerald" />
+            <Badge
+              label="program"
+              value="9hmucQ…hVDTg"
+              tone="violet"
+              href="https://solscan.io/account/9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg?cluster=devnet"
+            />
             {walletStats && (
               <Badge
                 label="house"
@@ -867,15 +872,23 @@ function Standings({ standings, agents }: { standings: Standing[]; agents: Agent
 function Footer() {
   return (
     <footer className="mt-16 pt-8 border-t border-zinc-800/80">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-[11px] font-mono text-zinc-500">
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          <span>endpoints</span>
-          <span className="text-zinc-400">api.devnet.solana.com</span>
-          <span className="text-fuchsia-300">devnet-tee.magicblock.app</span>
+      <div className="grid md:grid-cols-2 gap-4 text-[11px] font-mono text-zinc-500">
+        <div>
+          <div className="text-zinc-600 uppercase tracking-widest text-[9px] mb-1">endpoints</div>
+          <div className="text-zinc-400">api.devnet.solana.com</div>
+          <div className="text-fuchsia-300">devnet-tee.magicblock.app</div>
         </div>
-        <div className="flex gap-x-4">
-          <span>delegation</span>
-          <span className="text-zinc-400">DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh</span>
+        <div>
+          <div className="text-zinc-600 uppercase tracking-widest text-[9px] mb-1">programs</div>
+          <a
+            href="https://solscan.io/account/9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg?cluster=devnet"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-300 hover:text-violet-200 transition block"
+          >
+            hidden_hand: 9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg
+          </a>
+          <div className="text-zinc-400">delegation: DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh</div>
         </div>
       </div>
       <div className="mt-3 text-center text-[10px] text-zinc-600">
