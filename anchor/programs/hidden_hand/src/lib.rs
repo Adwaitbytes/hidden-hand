@@ -2,8 +2,9 @@ use anchor_lang::prelude::*;
 use ephemeral_rollups_sdk::anchor::{commit, delegate, ephemeral};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::MagicIntentBundleBuilder;
+use solana_program::hash::hashv;
 
-declare_id!("J4f7bbpnNA4nssLeACL9uB6xvBdvhrND8vgabE97HoYG");
+declare_id!("9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg");
 
 pub const AUCTION_SEED: &[u8] = b"auction";
 pub const MAX_BIDS: usize = 8;
@@ -40,7 +41,7 @@ pub mod hidden_hand {
         ctx: Context<DelegateAuction>,
         auction_id: [u8; 8],
     ) -> Result<()> {
-        ctx.accounts.delegate_auction(
+        ctx.accounts.delegate_pda(
             &ctx.accounts.payer,
             &[AUCTION_SEED, &auction_id],
             DelegateConfig {
@@ -70,10 +71,8 @@ pub mod hidden_hand {
 
         // Hash the blob with the bidder pubkey for tamper resistance.
         let bidder = ctx.accounts.bidder.key();
-        let mut hasher_input = Vec::with_capacity(32 + encrypted_blob.len());
-        hasher_input.extend_from_slice(&bidder.to_bytes());
-        hasher_input.extend_from_slice(&encrypted_blob);
-        let hash = anchor_lang::solana_program::hash::hash(&hasher_input).to_bytes();
+        let bidder_bytes = bidder.to_bytes();
+        let hash = hashv(&[&bidder_bytes, &encrypted_blob]).to_bytes();
 
         auction.bids.push(SealedBid { bidder, hash });
         msg!(

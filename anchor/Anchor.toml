@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-hidden_hand = "J4f7bbpnNA4nssLeACL9uB6xvBdvhrND8vgabE97HoYG"
+hidden_hand = "9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg"
 
 [programs.devnet]
-hidden_hand = "J4f7bbpnNA4nssLeACL9uB6xvBdvhrND8vgabE97HoYG"
+hidden_hand = "9hmucQcDZ1SJDCD8oM7KV5Rngfx7ZAcwZWk3WTghVDTg"
 
 [registry]
 url = "https://api.apr.dev"
