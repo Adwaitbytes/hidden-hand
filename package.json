@@ -10,6 +10,7 @@
   "dependencies": {
     "@ai-sdk/groq": "^3.0.35",
     "@ai-sdk/react": "^3.0.170",
+    "@coral-xyz/anchor": "^0.32.1",
     "@solana/web3.js": "^1.98.4",
     "ai": "^6.0.168",
     "bs58": "^6.0.0",
