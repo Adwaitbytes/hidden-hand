@@ -70,10 +70,10 @@ export async function* runAuctionSession(totalRounds = 5): AsyncGenerator<Auctio
       };
     }
 
-    const bidTxs = await Promise.all(
-      bidResults.map((r) => txSubmitBid(auctionId, r.agentId, r.encryptedBlob))
-    );
-    for (const tx of bidTxs) {
+    // Sequential — the on-chain PDA's `bids` vector is mutated per call, so
+    // parallel writes would race on the same account.
+    for (const r of bidResults) {
+      const tx = await txSubmitBid(auctionId, r.agentId, r.encryptedBlob);
       yield { type: "er_tx", round, tx };
       await delay(80);
     }
