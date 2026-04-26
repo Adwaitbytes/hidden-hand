@@ -28,10 +28,12 @@ import bs58 from "bs58";
 
 const SOLANA_DEVNET_RPC = process.env.SOLANA_DEVNET_RPC || "https://api.devnet.solana.com";
 const MAGICBLOCK_ER_RPC = process.env.MAGICBLOCK_ER_RPC || "https://devnet-as.magicblock.app";
+const MAGICBLOCK_TEE_RPC = process.env.MAGICBLOCK_TEE_RPC || "https://devnet-tee.magicblock.app";
 const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
 let _devnet: Connection | null = null;
 let _er: Connection | null = null;
+let _tee: Connection | null = null;
 let _keypair: Keypair | null = null;
 
 function devnetConn(): Connection {
@@ -48,6 +50,25 @@ function erConn(): Connection {
   return _er;
 }
 
+function teeConn(): Connection {
+  if (!_tee) {
+    _tee = new Connection(MAGICBLOCK_TEE_RPC, { commitment: "confirmed" });
+  }
+  return _tee;
+}
+
+export function getHouseAddress(): string {
+  return houseKeypair().publicKey.toBase58();
+}
+
+export function getEndpoints() {
+  return {
+    devnet: SOLANA_DEVNET_RPC,
+    er: MAGICBLOCK_ER_RPC,
+    tee: MAGICBLOCK_TEE_RPC,
+  };
+}
+
 function houseKeypair(): Keypair {
   if (_keypair) return _keypair;
   const secret = process.env.HOUSE_KEYPAIR_BS58;
@@ -58,7 +79,7 @@ function houseKeypair(): Keypair {
 
 export type ERTx = {
   signature: string;
-  type: "delegate" | "submit_sealed_bid" | "reveal" | "settle" | "undelegate";
+  type: "delegate" | "submit_sealed_bid" | "reveal" | "settle" | "undelegate" | "audit_trail";
   endpoint: "solana-devnet" | "magicblock-er" | "magicblock-private-er";
   account: string;
   payload?: Record<string, unknown>;
@@ -71,7 +92,8 @@ function explorerUrl(sig: string, endpoint: ERTx["endpoint"]): string {
   if (endpoint === "solana-devnet") {
     return `https://solscan.io/tx/${sig}?cluster=devnet`;
   }
-  return `https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=${encodeURIComponent(MAGICBLOCK_ER_RPC)}`;
+  const url = endpoint === "magicblock-private-er" ? MAGICBLOCK_TEE_RPC : MAGICBLOCK_ER_RPC;
+  return `https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=${encodeURIComponent(url)}`;
 }
 
 async function sendMemoTx(
@@ -169,7 +191,7 @@ export async function txSubmitBid(
   return buildTx(
     "submit_sealed_bid",
     "magicblock-private-er",
-    erConn(),
+    teeConn(),
     memo,
     pdaForSeed(`bid-${auctionId}-${agentId}`),
     { encryptedBlob }
@@ -181,7 +203,7 @@ export async function txReveal(auctionId: string): Promise<ERTx> {
   return buildTx(
     "reveal",
     "magicblock-private-er",
-    erConn(),
+    teeConn(),
     memo,
     pdaForSeed(`auction-${auctionId}`)
   );
@@ -200,5 +222,22 @@ export async function txSettle(
     memo,
     pdaForSeed(`settle-${auctionId}-${winnerAgent}`),
     { winner: winnerAgent, amount }
+  );
+}
+
+export async function txAuditTrail(summary: {
+  rounds: number;
+  winner: string | null;
+  totalSettled: number;
+  ts: number;
+}): Promise<ERTx> {
+  const memo = `magicblock:audit:hidden-hand:${summary.ts}:rounds=${summary.rounds}:winner=${summary.winner ?? "none"}:settled=${summary.totalSettled}`;
+  return buildTx(
+    "audit_trail",
+    "solana-devnet",
+    devnetConn(),
+    memo,
+    pdaForSeed(`audit-${summary.ts}`),
+    summary as unknown as Record<string, unknown>
   );
 }

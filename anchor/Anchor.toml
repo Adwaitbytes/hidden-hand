@@ -1,0 +1,22 @@
+[toolchain]
+package_manager = "npm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+hidden_hand = "J4f7bbpnNA4nssLeACL9uB6xvBdvhrND8vgabE97HoYG"
+
+[programs.devnet]
+hidden_hand = "J4f7bbpnNA4nssLeACL9uB6xvBdvhrND8vgabE97HoYG"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "../.keys/house-keypair.json"
+
+[scripts]
+test = "echo 'no tests'"

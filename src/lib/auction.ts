@@ -2,6 +2,7 @@ import { AGENTS, runAgent, type AgentBid, type AgentId } from "./agents";
 import { generateItem, type Item } from "./items";
 import {
   encryptBid,
+  txAuditTrail,
   txDelegateAuction,
   txReveal,
   txSettle,
@@ -18,7 +19,7 @@ export type AuctionEvent =
   | { type: "reveal"; round: number; bids: { agentId: AgentId; bid: number; encryptedBlob: string }[] }
   | { type: "winner"; round: number; agentId: AgentId | null; amount: number; item: Item }
   | { type: "balances"; balances: Record<AgentId, number>; wins: Record<AgentId, number> }
-  | { type: "session_end"; standings: { agentId: AgentId; balance: number; wins: number; haul: Item[] }[] };
+  | { type: "session_end"; standings: { agentId: AgentId; balance: number; wins: number; haul: Item[] }[]; auditTx?: ERTx };
 
 const STARTING_BALANCE = 5000;
 
@@ -119,5 +120,14 @@ export async function* runAuctionSession(totalRounds = 5): AsyncGenerator<Auctio
     haul: haul[a.id],
   })).sort((a, b) => b.wins - a.wins || b.balance - a.balance);
 
-  yield { type: "session_end", standings };
+  const totalSettled = AGENTS.reduce((s, a) => s + (STARTING_BALANCE - balances[a.id]), 0);
+  const championAgent = standings[0]?.agentId ?? null;
+  const auditTx = await txAuditTrail({
+    rounds: totalRounds,
+    winner: championAgent,
+    totalSettled,
+    ts: Date.now(),
+  });
+  yield { type: "er_tx", round: totalRounds, tx: auditTx };
+  yield { type: "session_end", standings, auditTx };
 }

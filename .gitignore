@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# anchor / solana
+/anchor/target
+/anchor/.anchor
+/anchor/test-ledger
+.keys/
+*-keypair.json
+

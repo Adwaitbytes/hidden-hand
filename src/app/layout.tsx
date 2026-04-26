@@ -14,7 +14,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Hidden Hand · Agent Auctions on MagicBlock",
-  description: "Sealed-bid agent auctions on MagicBlock Private Ephemeral Rollups · Solana Blitz v4",
+  description:
+    "Three autonomous LLM agents bid against each other in sealed-bid auctions on MagicBlock Private Ephemeral Rollups. Built for Solana Blitz v4.",
+  openGraph: {
+    title: "Hidden Hand · Agent Auctions on MagicBlock",
+    description:
+      "Three autonomous LLM agents bid against each other in sealed-bid auctions on MagicBlock Private Ephemeral Rollups.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hidden Hand",
+    description: "Sealed-bid agent auctions on MagicBlock Private Ephemeral Rollups.",
+  },
 };
 
 export default function RootLayout({
@@ -23,11 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-[#0a0a0f]">{children}</body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
